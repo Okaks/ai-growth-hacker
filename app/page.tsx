@@ -504,7 +504,7 @@ async function exportToPDF(result: AnalysisResult, productName: string) {
   }
 
   // Footer on each page
- const totalPages = doc.getNumberOfPages();
+  const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     doc.setFontSize(8);
@@ -997,205 +997,277 @@ export default function Home() {
     navigator.clipboard.writeText(buildReportText(result, productName));
   };
 
+  const inputStyle: React.CSSProperties = {
+    width: "100%", fontSize: 15, padding: "12px 16px",
+    border: "none", borderBottom: "2px solid #1a1a1a",
+    background: "transparent", outline: "none",
+    boxSizing: "border-box", fontFamily: "'DM Sans', sans-serif",
+    color: "#1a1a1a", transition: "border-color 0.2s"
+  };
+
   return (
-    <main style={{ minHeight: "100vh", background: "#f8f9fb", fontFamily: "'Inter', -apple-system, sans-serif" }}>
-      {/* Header */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "1rem 2rem", display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ width: 32, height: 32, borderRadius: 8, background: "#6366f1", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ color: "#fff", fontSize: 16 }}>📈</span>
-        </div>
-        <div>
-          <h1 style={{ fontSize: 17, fontWeight: 700, color: "#111827", margin: 0 }}>AI Growth Advisor</h1>
-          <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>Consultant-grade strategy, powered by AI</p>
-        </div>
-      </div>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+        * { box-sizing: border-box; }
+        body { margin: 0; }
+        .field-input:focus { border-bottom-color: #C8A96E !important; }
+        .field-input::placeholder { color: #aaa; }
+        .toggle-btn { transition: all 0.2s; }
+        .toggle-btn:hover { transform: translateY(-1px); }
+        .stage-btn:hover { background: #1a1a1a !important; color: #fff !important; }
+        .submit-btn:hover:not(:disabled) { background: #C8A96E !important; }
+        .refine-btn:hover { background: #1a1a1a !important; color: #fff !important; border-color: #1a1a1a !important; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp 0.5s ease forwards; }
+      `}</style>
 
-      <div style={{ maxWidth: 820, margin: "0 auto", padding: "2rem 1rem" }}>
+      <main style={{ minHeight: "100vh", background: "#F7F4EF", fontFamily: "'DM Sans', sans-serif" }}>
 
-        {/* Intake Form */}
-        <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 16, padding: "1.75rem", marginBottom: "1.5rem" }}>
-
-          {/* New / Existing Toggle */}
-          <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9ca3af", marginBottom: 10 }}>
-              Is this a new or existing product?
-            </label>
-            <div style={{ display: "flex", gap: 10 }}>
-              {[
-                { val: true, label: "🚀 New Product", sub: "Pre-launch or under 3 months" },
-                { val: false, label: "📊 Existing Product", sub: "Already live with users" }
-              ].map(opt => (
-                <button key={String(opt.val)} onClick={() => setIsNew(opt.val)} style={{
-                  flex: 1, padding: "0.875rem", borderRadius: 12, cursor: "pointer", textAlign: "left",
-                  border: isNew === opt.val ? "2px solid #6366f1" : "1.5px solid #e5e7eb",
-                  background: isNew === opt.val ? "#eef2ff" : "#fff", transition: "all 0.15s"
-                }}>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: isNew === opt.val ? "#4338ca" : "#111827", margin: 0 }}>{opt.label}</p>
-                  <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>{opt.sub}</p>
-                </button>
-              ))}
+        {/* Hero Header */}
+        <div style={{ background: "#1a1a1a", padding: "3rem 2rem 2.5rem", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: -60, right: -60, width: 300, height: 300, borderRadius: "50%", border: "1px solid rgba(200,169,110,0.15)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: -20, right: -20, width: 180, height: 180, borderRadius: "50%", border: "1px solid rgba(200,169,110,0.1)", pointerEvents: "none" }} />
+          <div style={{ maxWidth: 820, margin: "0 auto" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1.5rem" }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#C8A96E" }} />
+              <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "#C8A96E" }}>AI-Powered Strategy</span>
             </div>
-          </div>
-
-          {/* Stage selector */}
-          {isNew === false && (
-            <div style={{ marginBottom: "1.25rem" }}>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9ca3af", marginBottom: 8 }}>Product Stage</label>
-              <div style={{ display: "flex", gap: 8 }}>
-                {[{ val: "early", label: "Early (0–6 mo)" }, { val: "growth", label: "Growth (6–18 mo)" }, { val: "scaling", label: "Scaling (18 mo+)" }].map(s => (
-                  <button key={s.val} onClick={() => setStage(s.val)} style={{
-                    padding: "6px 14px", borderRadius: 99, fontSize: 13, cursor: "pointer",
-                    border: stage === s.val ? "1.5px solid #6366f1" : "1.5px solid #e5e7eb",
-                    background: stage === s.val ? "#eef2ff" : "#fff",
-                    color: stage === s.val ? "#4338ca" : "#6b7280", fontWeight: stage === s.val ? 600 : 400
-                  }}>{s.label}</button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Core fields */}
-          <div style={{ display: "grid", gap: 14, marginBottom: "1.25rem" }}>
-            {[
-              { label: "Product Name *", placeholder: "e.g. Fintech Dashboard SaaS", val: productName, set: setProductName, multi: false },
-              { label: "Product Description *", placeholder: "What does your product do? What problem does it solve?", val: description, set: setDescription, multi: true },
-              { label: "Target Audience *", placeholder: "e.g. SME business owners in West Africa", val: users, set: setUsers, multi: false },
-            ].map(f => (
-              <div key={f.label}>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9ca3af", marginBottom: 6 }}>{f.label}</label>
-                {f.multi
-                  ? <textarea placeholder={f.placeholder} style={{ width: "100%", fontSize: 15, padding: "10px 14px", border: "1.5px solid #e5e7eb", borderRadius: 10, minHeight: 90, resize: "vertical", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} value={f.val} onChange={e => f.set(e.target.value)} />
-                  : <input placeholder={f.placeholder} style={{ width: "100%", fontSize: 15, padding: "10px 14px", border: "1.5px solid #e5e7eb", borderRadius: 10, outline: "none", boxSizing: "border-box" }} value={f.val} onChange={e => f.set(e.target.value)} />
-                }
-              </div>
-            ))}
-          </div>
-
-          {/* Metrics (existing only) */}
-          {isNew === false && (
-            <div style={{ marginBottom: "1.25rem" }}>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9ca3af", marginBottom: 4 }}>
-                Current Metrics <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(optional but recommended)</span>
-              </label>
-              <p style={{ fontSize: 12, color: "#9ca3af", marginBottom: 10 }}>More data = more precise advice. Leave blank for general strategic guidance.</p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                {[
-                  { label: "Monthly Active Users", placeholder: "e.g. 2500", val: monthlyUsers, set: setMonthlyUsers },
-                  { label: "Monthly Signups", placeholder: "e.g. 300", val: monthlySignups, set: setMonthlySignups },
-                  { label: "Activation Rate (%)", placeholder: "e.g. 42", val: activationRate, set: setActivationRate },
-                  { label: "Retention Rate (%)", placeholder: "e.g. 35", val: retentionRate, set: setRetentionRate },
-                  { label: "Monthly Revenue ($)", placeholder: "e.g. 8000", val: revenue, set: setRevenue },
-                ].map(f => (
-                  <div key={f.label}>
-                    <label style={{ display: "block", fontSize: 11, color: "#9ca3af", marginBottom: 4 }}>{f.label}</label>
-                    <input placeholder={f.placeholder} style={{ width: "100%", fontSize: 14, padding: "8px 12px", border: "1.5px solid #e5e7eb", borderRadius: 8, outline: "none", boxSizing: "border-box" }} value={f.val} onChange={e => f.set(e.target.value)} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* AI Engine */}
-          <div style={{ marginBottom: "1rem" }}>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9ca3af", marginBottom: 6 }}>AI Engine</label>
-            <select style={{ width: "100%", fontSize: 14, padding: "10px 14px", border: "1.5px solid #e5e7eb", borderRadius: 10, outline: "none", background: "#fff" }} value={provider} onChange={e => handleProviderChange(e.target.value)}>
-              <option value="groq">Groq — Fast &amp; Free (LLaMA 3.3 70B)</option>
-              <option value="openrouter">OpenRouter — Free Models</option>
-              <option value="openai">OpenAI — GPT-4o Mini 🔒</option>
-              <option value="claude">Claude — Sonnet (Best quality) 🔒</option>
-            </select>
-          </div>
-
-          {/* Premium password */}
-          {showPasswordField && (
-            <div style={{ marginBottom: "1.25rem", background: "#fafafa", border: "1.5px solid #e5e7eb", borderRadius: 10, padding: "1rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                <span style={{ fontSize: 14 }}>🔒</span>
-                <label style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>Premium Access Password</label>
-              </div>
-              <p style={{ fontSize: 12, color: "#9ca3af", marginBottom: 8 }}>This AI engine requires a password. Enter it below to continue.</p>
-              <input
-                type="password"
-                placeholder="Enter password"
-                style={{ width: "100%", fontSize: 14, padding: "9px 12px", border: "1.5px solid #e5e7eb", borderRadius: 8, outline: "none", boxSizing: "border-box" }}
-                value={premiumPassword}
-                onChange={e => setPremiumPassword(e.target.value)}
-              />
-            </div>
-          )}
-
-          <button onClick={handleSubmit} disabled={!canSubmit || loading} style={{
-            width: "100%", padding: "13px", fontSize: 15, fontWeight: 600,
-            background: canSubmit && !loading ? "#6366f1" : "#d1d5db",
-            color: "#fff", border: "none", borderRadius: 10,
-            cursor: canSubmit && !loading ? "pointer" : "not-allowed", transition: "background 0.15s"
-          }}>
-            {loading ? "Generating your strategy..." : "Generate Growth Strategy →"}
-          </button>
-
-          {!canSubmit && !loading && (
-            <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 8, textAlign: "center" }}>
-              {isPremium && !premiumPassword.trim()
-                ? "Enter your premium password to use this AI engine"
-                : "Fill in the required fields and select new or existing product to continue"}
+            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2.2rem, 5vw, 3.5rem)", fontWeight: 900, color: "#fff", margin: "0 0 1rem", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
+              Your Product&apos;s<br />
+              <span style={{ color: "#C8A96E", fontStyle: "italic" }}>Growth Advisor</span>
+            </h1>
+            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.55)", margin: 0, maxWidth: 480, lineHeight: 1.6, fontWeight: 300 }}>
+              Consultant-grade growth strategy, funnel analysis, and actionable roadmaps — powered by AI.
             </p>
-          )}
+          </div>
         </div>
 
-        {/* Loading */}
-        {loading && (
-          <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
-            <div style={{ width: 40, height: 40, border: "3px solid #e5e7eb", borderTop: "3px solid #6366f1", borderRadius: "50%", margin: "0 auto 16px", animation: "spin 0.8s linear infinite" }} />
-            <p style={{ fontSize: 14, color: "#6b7280" }}>Analyzing your product with a consultant lens...</p>
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          </div>
-        )}
+        <div style={{ maxWidth: 820, margin: "0 auto", padding: "2.5rem 1.5rem" }}>
 
-        {/* Error */}
-        {error && (
-          <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 12, padding: "1rem 1.25rem", marginBottom: "1rem" }}>
-            <p style={{ fontSize: 14, color: "#991b1b", margin: 0 }}>{error}</p>
-          </div>
-        )}
+          {/* Intake Form */}
+          <div style={{ background: "#fff", borderRadius: 2, padding: "2.5rem", marginBottom: "1.5rem", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 4px 4px 0 #1a1a1a" }}>
 
-        {/* Results */}
-        {result && (
-          <div>
-            {/* Export bar */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+            {/* Section number */}
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: "2rem" }}>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 48, fontWeight: 900, color: "#f0ece5", lineHeight: 1 }}>01</span>
               <div>
-                <p style={{ fontSize: 18, fontWeight: 700, color: "#111827", margin: 0 }}>Growth Strategy Report</p>
-                <p style={{ fontSize: 13, color: "#9ca3af", margin: 0 }}>{productName}</p>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={handleCopyAll} style={{ fontSize: 13, padding: "7px 14px", borderRadius: 8, border: "1.5px solid #e5e7eb", background: "#fff", color: "#374151", cursor: "pointer" }}>
-                  Copy Report
-                </button>
-                <button onClick={handleExportPDF} disabled={exporting} style={{ fontSize: 13, padding: "7px 16px", borderRadius: 8, border: "none", background: "#6366f1", color: "#fff", cursor: exporting ? "not-allowed" : "pointer", fontWeight: 500, opacity: exporting ? 0.7 : 1 }}>
-                  {exporting ? "Generating PDF..." : "Download Report ↓"}
-                </button>
+                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Tell us about your product</h2>
+                <p style={{ fontSize: 13, color: "#888", margin: "2px 0 0", fontWeight: 300 }}>The more context you give, the sharper the strategy</p>
               </div>
             </div>
 
-            {result.state === "new_no_metrics" && <ResultNewNoMetrics data={result} />}
-            {result.state === "existing_no_metrics" && <ResultExistingNoMetrics data={result} />}
-            {result.state === "existing_with_metrics" && <ResultExistingWithMetrics data={result} />}
-
-            {/* Refine prompts */}
-            <div style={{ marginTop: "1.5rem", padding: "1.25rem 1.5rem", background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 14 }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: "#6b7280", marginBottom: 10 }}>Refine your strategy →</p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {["Focus only on retention", "Give me a paid acquisition plan", "What should I do in the first 30 days?", "How do I improve activation?"].map(q => (
-                  <button key={q} onClick={() => { setDescription(d => d + `\n\nFollow-up focus: ${q}`); setTimeout(handleSubmit, 100); }}
-                    style={{ fontSize: 13, padding: "7px 14px", borderRadius: 99, border: "1.5px solid #c7d2fe", background: "#eef2ff", color: "#4338ca", cursor: "pointer" }}>
-                    {q}
+            {/* New / Existing Toggle */}
+            <div style={{ marginBottom: "2rem" }}>
+              <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#888", marginBottom: 12 }}>Product status</p>
+              <div style={{ display: "flex", gap: 12 }}>
+                {[
+                  { val: true, label: "New Product", sub: "Pre-launch or under 3 months", icon: "↗" },
+                  { val: false, label: "Existing Product", sub: "Already live with users", icon: "◎" }
+                ].map(opt => (
+                  <button key={String(opt.val)} className="toggle-btn" onClick={() => setIsNew(opt.val)} style={{
+                    flex: 1, padding: "1rem 1.25rem", cursor: "pointer", textAlign: "left",
+                    border: isNew === opt.val ? "2px solid #1a1a1a" : "1.5px solid #e5e5e5",
+                    background: isNew === opt.val ? "#1a1a1a" : "#fff",
+                    borderRadius: 2
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: isNew === opt.val ? "#C8A96E" : "#1a1a1a" }}>{opt.label}</span>
+                      <span style={{ fontSize: 16, color: isNew === opt.val ? "#C8A96E" : "#ccc" }}>{opt.icon}</span>
+                    </div>
+                    <p style={{ fontSize: 12, color: isNew === opt.val ? "rgba(255,255,255,0.5)" : "#aaa", margin: 0, fontWeight: 300 }}>{opt.sub}</p>
                   </button>
                 ))}
               </div>
             </div>
+
+            {/* Stage selector */}
+            {isNew === false && (
+              <div style={{ marginBottom: "2rem" }}>
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#888", marginBottom: 12 }}>Product stage</p>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {[{ val: "early", label: "Early Stage", sub: "0–6 mo" }, { val: "growth", label: "Growth", sub: "6–18 mo" }, { val: "scaling", label: "Scaling", sub: "18 mo+" }].map(s => (
+                    <button key={s.val} className="stage-btn" onClick={() => setStage(s.val)} style={{
+                      flex: 1, padding: "10px 12px", cursor: "pointer", textAlign: "center",
+                      border: stage === s.val ? "2px solid #1a1a1a" : "1.5px solid #e5e5e5",
+                      background: stage === s.val ? "#1a1a1a" : "#fff",
+                      borderRadius: 2, fontSize: 13,
+                      color: stage === s.val ? "#C8A96E" : "#555",
+                      fontWeight: stage === s.val ? 600 : 400
+                    }}>
+                      <div>{s.label}</div>
+                      <div style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>{s.sub}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Core fields */}
+            <div style={{ display: "grid", gap: 24, marginBottom: "2rem" }}>
+              {[
+                { label: "Product Name", required: true, placeholder: "e.g. Fintech Dashboard SaaS", val: productName, set: setProductName, multi: false },
+                { label: "Product Description", required: true, placeholder: "What does your product do? What problem does it solve?", val: description, set: setDescription, multi: true },
+                { label: "Target Audience", required: true, placeholder: "e.g. SME business owners in West Africa", val: users, set: setUsers, multi: false },
+              ].map(f => (
+                <div key={f.label}>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#888", marginBottom: 8 }}>
+                    {f.label} {f.required && <span style={{ color: "#C8A96E" }}>*</span>}
+                  </label>
+                  {f.multi
+                    ? <textarea className="field-input" placeholder={f.placeholder} style={{ ...inputStyle, minHeight: 100, resize: "vertical", borderBottom: "2px solid #1a1a1a" }} value={f.val} onChange={e => f.set(e.target.value)} />
+                    : <input className="field-input" placeholder={f.placeholder} style={inputStyle} value={f.val} onChange={e => f.set(e.target.value)} />
+                  }
+                </div>
+              ))}
+            </div>
+
+            {/* Metrics */}
+            {isNew === false && (
+              <div style={{ marginBottom: "2rem" }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#888", margin: 0 }}>Current Metrics</p>
+                  <span style={{ fontSize: 11, color: "#bbb", fontStyle: "italic" }}>optional but recommended</span>
+                </div>
+                <p style={{ fontSize: 12, color: "#aaa", marginBottom: 16, fontWeight: 300 }}>More data unlocks deeper analysis. Leave blank for strategic guidance only.</p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                  {[
+                    { label: "Monthly Active Users", placeholder: "e.g. 2500", val: monthlyUsers, set: setMonthlyUsers },
+                    { label: "Monthly Signups", placeholder: "e.g. 300", val: monthlySignups, set: setMonthlySignups },
+                    { label: "Activation Rate (%)", placeholder: "e.g. 42", val: activationRate, set: setActivationRate },
+                    { label: "Retention Rate (%)", placeholder: "e.g. 35", val: retentionRate, set: setRetentionRate },
+                    { label: "Monthly Revenue ($)", placeholder: "e.g. 8000", val: revenue, set: setRevenue },
+                  ].map(f => (
+                    <div key={f.label}>
+                      <label style={{ display: "block", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#bbb", marginBottom: 6 }}>{f.label}</label>
+                      <input className="field-input" placeholder={f.placeholder} style={{ ...inputStyle, fontSize: 14, borderBottom: "1.5px solid #ddd" }} value={f.val} onChange={e => f.set(e.target.value)} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Divider */}
+            <div style={{ borderTop: "1px solid #f0ece5", margin: "1.5rem 0" }} />
+
+            {/* AI Engine */}
+            <div style={{ marginBottom: "1.5rem" }}>
+              <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#888", marginBottom: 12 }}>AI Engine</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {[
+                  { val: "groq", label: "Groq", sub: "Fast & Free · LLaMA 3.3 70B", premium: false },
+                  { val: "openrouter", label: "OpenRouter", sub: "Free Models", premium: false },
+                  { val: "openai", label: "OpenAI", sub: "GPT-4o Mini · Premium", premium: true },
+                  { val: "claude", label: "Claude", sub: "Sonnet · Best Quality", premium: true },
+                ].map(e => (
+                  <button key={e.val} onClick={() => handleProviderChange(e.val)} style={{
+                    padding: "10px 14px", cursor: "pointer", textAlign: "left",
+                    border: provider === e.val ? "2px solid #1a1a1a" : "1.5px solid #e5e5e5",
+                    background: provider === e.val ? "#1a1a1a" : "#fff",
+                    borderRadius: 2, transition: "all 0.15s"
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: provider === e.val ? "#C8A96E" : "#1a1a1a" }}>{e.label}</span>
+                      {e.premium && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", background: "#f0ece5", color: "#888", padding: "2px 6px", borderRadius: 2 }}>PREMIUM</span>}
+                    </div>
+                    <p style={{ fontSize: 11, color: provider === e.val ? "rgba(255,255,255,0.4)" : "#bbb", margin: "3px 0 0", fontWeight: 300 }}>{e.sub}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Premium password */}
+            {showPasswordField && (
+              <div style={{ marginBottom: "1.5rem", background: "#f9f7f4", border: "1.5px solid #e5e5e5", borderRadius: 2, padding: "1.25rem" }}>
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#888", marginBottom: 8 }}>Premium Access</p>
+                <p style={{ fontSize: 12, color: "#aaa", marginBottom: 12, fontWeight: 300 }}>This engine requires a password. Enter it below to continue.</p>
+                <input
+                  type="password"
+                  className="field-input"
+                  placeholder="Enter password"
+                  style={{ ...inputStyle, fontSize: 14, borderBottom: "2px solid #1a1a1a" }}
+                  value={premiumPassword}
+                  onChange={e => setPremiumPassword(e.target.value)}
+                />
+              </div>
+            )}
+
+            {/* Submit */}
+            <button className="submit-btn" onClick={handleSubmit} disabled={!canSubmit || loading} style={{
+              width: "100%", padding: "16px", fontSize: 15, fontWeight: 600,
+              background: canSubmit && !loading ? "#1a1a1a" : "#e5e5e5",
+              color: canSubmit && !loading ? "#fff" : "#aaa",
+              border: "none", borderRadius: 2, cursor: canSubmit && !loading ? "pointer" : "not-allowed",
+              letterSpacing: "0.04em", transition: "background 0.2s", fontFamily: "'DM Sans', sans-serif"
+            }}>
+              {loading ? "Generating your strategy..." : "Generate Growth Strategy →"}
+            </button>
+
+            {!canSubmit && !loading && (
+              <p style={{ fontSize: 12, color: "#bbb", marginTop: 10, textAlign: "center", fontWeight: 300, fontStyle: "italic" }}>
+                {isPremium && !premiumPassword.trim()
+                  ? "Enter your premium password to continue"
+                  : "Complete the required fields to continue"}
+              </p>
+            )}
           </div>
-        )}
-      </div>
-    </main>
+
+          {/* Loading */}
+          {loading && (
+            <div style={{ textAlign: "center", padding: "4rem 1rem" }}>
+              <div style={{ width: 36, height: 36, border: "2px solid #e5e5e5", borderTop: "2px solid #C8A96E", borderRadius: "50%", margin: "0 auto 20px", animation: "spin 0.9s linear infinite" }} />
+              <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: "#1a1a1a", margin: "0 0 6px" }}>Analyzing your product</p>
+              <p style={{ fontSize: 13, color: "#aaa", margin: 0, fontWeight: 300 }}>Applying a consultant lens to your inputs...</p>
+            </div>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div style={{ background: "#fff", border: "2px solid #1a1a1a", borderLeft: "4px solid #e53e3e", borderRadius: 2, padding: "1rem 1.25rem", marginBottom: "1rem" }}>
+              <p style={{ fontSize: 14, color: "#c53030", margin: 0, fontWeight: 500 }}>{error}</p>
+            </div>
+          )}
+
+          {/* Results */}
+          {result && (
+            <div className="fade-up">
+              {/* Export bar */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: "2px solid #1a1a1a" }}>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#C8A96E", margin: "0 0 4px" }}>Strategy Report</p>
+                  <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: "#1a1a1a", margin: 0 }}>{productName}</p>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={handleCopyAll} style={{ fontSize: 12, padding: "8px 16px", borderRadius: 2, border: "1.5px solid #1a1a1a", background: "#fff", color: "#1a1a1a", cursor: "pointer", fontWeight: 600, letterSpacing: "0.04em" }}>
+                    Copy
+                  </button>
+                  <button onClick={handleExportPDF} disabled={exporting} style={{ fontSize: 12, padding: "8px 16px", borderRadius: 2, border: "none", background: "#1a1a1a", color: "#C8A96E", cursor: exporting ? "not-allowed" : "pointer", fontWeight: 600, letterSpacing: "0.04em", opacity: exporting ? 0.7 : 1 }}>
+                    {exporting ? "Generating..." : "Download PDF ↓"}
+                  </button>
+                </div>
+              </div>
+
+              {result.state === "new_no_metrics" && <ResultNewNoMetrics data={result} />}
+              {result.state === "existing_no_metrics" && <ResultExistingNoMetrics data={result} />}
+              {result.state === "existing_with_metrics" && <ResultExistingWithMetrics data={result} />}
+
+              {/* Refine prompts */}
+              <div style={{ marginTop: "2rem", padding: "1.5rem", background: "#1a1a1a", borderRadius: 2 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#C8A96E", marginBottom: 12 }}>Refine your strategy</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {["Focus only on retention", "Give me a paid acquisition plan", "What should I do in the first 30 days?", "How do I improve activation?"].map(q => (
+                    <button key={q} className="refine-btn" onClick={() => { setDescription(d => d + `\n\nFollow-up focus: ${q}`); setTimeout(handleSubmit, 100); }}
+                      style={{ fontSize: 12, padding: "8px 16px", borderRadius: 2, border: "1.5px solid rgba(255,255,255,0.15)", background: "transparent", color: "rgba(255,255,255,0.7)", cursor: "pointer", transition: "all 0.15s" }}>
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+    </>
   );
 }

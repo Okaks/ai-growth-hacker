@@ -8,6 +8,7 @@ New product	Name, description, audience	Tracking blueprint (AARRR) + 3-month tac
 Existing product, no metrics	Name, description, audience	Metrics gap analysis + tracking blueprint + 6-month growth & retention plan
 Existing product, with metrics	Above + MAU, signups, activation, retention, revenue	Full funnel analysis + growth strategy + retention plan + revenue opportunities + priority roadmap
 
+
 Features
 •	Three-state advisory logic: output adapts to the product's lifecycle stage
 •	AARRR tracking blueprint: 7–12 metrics organized by funnel stage with how-to-track guidance and benchmarks
@@ -22,14 +23,20 @@ Tech Stack
 •	Upstash Redis: serverless daily rate limiting
 •	jsPDF: client-side PDF generation
 •	Vercel: deployment
+
+
 Getting Started
 Prerequisites
 •	Node.js 18+
 •	Accounts for the AI providers you want to use
+
+
 Installation
 git clone https://github.com/Okaks/ai-growth-hacker.git
 cd ai-growth-hacker
 npm install
+
+
 Environment Variables
 •	Create a .env.local file in the root:
 •	GROQ_API_KEY=your_groq_key
@@ -37,12 +44,18 @@ Environment Variables
 •	OPENROUTER_API_KEY=your_openrouter_key
 •	CLAUDE_API_KEY=your_claude_key
 •	PREMIUM_PASSWORD=your_secret_password
+
+
 # Upstash Redis (for rate limiting)
 •	KV_REST_API_URL=your_upstash_url
 •	KV_REST_API_TOKEN=your_upstash_token
+
+
 Run locally
 npm run dev
 Open http://localhost:3000
+
+
 Deployment
 This app is optimised for Vercel. The rate limiter uses Upstash Redis which works correctly in serverless environments.
 1.	Push to GitHub
@@ -50,6 +63,8 @@ This app is optimised for Vercel. The rate limiter uses Upstash Redis which work
 3.	Set framework to Next.js
 4.	Add all environment variables
 5.	Deploy
+
+
 About
 Built by Blessing Okakwu, data analyst with a background in BI, product analytics, and accounting. This project sits at the intersection of domain knowledge and AI, using prompt engineering and product thinking to deliver contextually intelligent growth advice.
 LinkedIn · Portfolio

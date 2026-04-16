@@ -573,7 +573,7 @@ function CopyButton({ text }: { text: string }) {
 
 // ─── Result Renderers ─────────────────────────────────────────────────────────
 
-function ResultNewNoMetrics({ data }: { data: AnalysisResult }) {
+function BlueprintSection({ blueprint, accentColor }: { blueprint: NonNullable<AnalysisResult["trackingBlueprint"]>; accentColor?: string }) {
   const stageColors: Record<string, { bg: string; border: string; text: string; badge: string }> = {
     Acquisition: { bg: "#eef2ff", border: "#6366f1", text: "#4338ca", badge: "#6366f1" },
     Activation:  { bg: "#f0fdf4", border: "#10b981", text: "#065f46", badge: "#10b981" },
@@ -581,7 +581,50 @@ function ResultNewNoMetrics({ data }: { data: AnalysisResult }) {
     Revenue:     { bg: "#fef2f2", border: "#ef4444", text: "#991b1b", badge: "#ef4444" },
     Referral:    { bg: "#f5f3ff", border: "#8b5cf6", text: "#5b21b6", badge: "#8b5cf6" },
   };
+  const borderAccent = accentColor || "#6366f1";
+  return (
+    <Card>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+        <SectionLabel>What to Measure</SectionLabel>
+        <CopyButton text={blueprint.map(s =>
+          `[${s.stage}]\n${s.metrics.map((m, i) => `${i+1}. ${m.metric} — ${m.why} | Benchmark: ${m.benchmark}`).join("\n")}`
+        ).join("\n\n")} />
+      </div>
+      <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16, lineHeight: 1.6 }}>
+        These are the numbers that will tell you if your growth strategy is working. Start tracking them as early as possible — the sooner you have data, the sharper your decisions.
+      </p>
+      {blueprint.map((stage, si) => {
+        const c = stageColors[stage.stage] || stageColors.Acquisition;
+        return (
+          <div key={si} style={{ marginBottom: 16 }}>
+            <div style={{ background: c.bg, border: `1.5px solid ${c.border}`, borderRadius: 10, padding: "10px 14px", marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <span style={{ background: c.badge, color: "#fff", fontSize: 11, fontWeight: 700, padding: "2px 10px", borderRadius: 99 }}>{stage.stage}</span>
+              </div>
+              <p style={{ fontSize: 12, color: c.text, margin: 0 }}>{stage.stageWhy}</p>
+            </div>
+            <div style={{ display: "grid", gap: 8, paddingLeft: 4 }}>
+              {stage.metrics.map((m, mi) => (
+                <div key={mi} style={{ background: "#f9fafb", borderRadius: 10, padding: "0.875rem", borderLeft: `3px solid ${c.border}` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <span style={{ width: 20, height: 20, borderRadius: "50%", background: c.badge, color: "#fff", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{mi + 1}</span>
+                    <span style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{m.metric}</span>
+                  </div>
+                  <p style={{ fontSize: 12, color: "#4b5563", marginBottom: 3 }}><strong>What it measures:</strong> {m.definition}</p>
+                  <p style={{ fontSize: 12, color: "#4b5563", marginBottom: 3 }}><strong>Why it matters:</strong> {m.why}</p>
+                  <p style={{ fontSize: 12, color: borderAccent, marginBottom: 3 }}><strong>How to track:</strong> {m.howToTrack}</p>
+                  <p style={{ fontSize: 12, color: "#059669", fontWeight: 500 }}>Benchmark: {m.benchmark}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </Card>
+  );
+}
 
+function ResultNewNoMetrics({ data }: { data: AnalysisResult }) {
   return (
     <>
       <Card accent="#6366f1">
@@ -589,52 +632,9 @@ function ResultNewNoMetrics({ data }: { data: AnalysisResult }) {
         <p style={{ fontSize: 15, lineHeight: 1.7, color: "#111827" }}>{data.summary}</p>
       </Card>
 
-      {data.trackingBlueprint && (
-        <Card>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-            <SectionLabel>Full Tracking Blueprint</SectionLabel>
-            <CopyButton text={data.trackingBlueprint.map(s =>
-              `[${s.stage}]\n${s.metrics.map((m, i) => `${i+1}. ${m.metric} — ${m.why} | Benchmark: ${m.benchmark}`).join("\n")}`
-            ).join("\n\n")} />
-          </div>
-          <p style={{ fontSize: 12, color: "#9ca3af", marginBottom: 16 }}>
-            Instrument all of these before your next analysis session — they cover every stage of your growth funnel.
-          </p>
-          {data.trackingBlueprint.map((stage, si) => {
-            const c = stageColors[stage.stage] || stageColors.Acquisition;
-            return (
-              <div key={si} style={{ marginBottom: 16 }}>
-                {/* Stage header */}
-                <div style={{ background: c.bg, border: `1.5px solid ${c.border}`, borderRadius: 10, padding: "10px 14px", marginBottom: 8 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                    <span style={{ background: c.badge, color: "#fff", fontSize: 11, fontWeight: 700, padding: "2px 10px", borderRadius: 99 }}>{stage.stage}</span>
-                  </div>
-                  <p style={{ fontSize: 12, color: c.text, margin: 0 }}>{stage.stageWhy}</p>
-                </div>
-                {/* Metrics */}
-                <div style={{ display: "grid", gap: 8, paddingLeft: 4 }}>
-                  {stage.metrics.map((m, mi) => (
-                    <div key={mi} style={{ background: "#f9fafb", borderRadius: 10, padding: "0.875rem", borderLeft: `3px solid ${c.border}` }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                        <span style={{ width: 20, height: 20, borderRadius: "50%", background: c.badge, color: "#fff", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{mi + 1}</span>
-                        <span style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{m.metric}</span>
-                      </div>
-                      <p style={{ fontSize: 12, color: "#4b5563", marginBottom: 3 }}><strong>What it measures:</strong> {m.definition}</p>
-                      <p style={{ fontSize: 12, color: "#4b5563", marginBottom: 3 }}><strong>Why it matters:</strong> {m.why}</p>
-                      <p style={{ fontSize: 12, color: "#6366f1", marginBottom: 3 }}><strong>How to track:</strong> {m.howToTrack}</p>
-                      <p style={{ fontSize: 12, color: "#059669", fontWeight: 500 }}>Benchmark: {m.benchmark}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </Card>
-      )}
-
       {data.plan3Months && (
         <Card>
-          <SectionLabel>3-Month Tactical Plan</SectionLabel>
+          <SectionLabel>Your 3-Month Action Plan</SectionLabel>
           <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 14, fontStyle: "italic" }}>Goal: {data.plan3Months.goal}</p>
           {data.plan3Months.weeks.map((w, i) => (
             <div key={i} style={{ borderLeft: "3px solid #6366f1", paddingLeft: 14, marginBottom: 14 }}>
@@ -649,7 +649,7 @@ function ResultNewNoMetrics({ data }: { data: AnalysisResult }) {
 
       {data.plan6Months?.milestones && (
         <Card>
-          <SectionLabel>6-Month Strategic Plan</SectionLabel>
+          <SectionLabel>Your 6-Month Growth Roadmap</SectionLabel>
           <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 14, fontStyle: "italic" }}>Goal: {data.plan6Months.goal}</p>
           {data.plan6Months.milestones.map((m, i) => (
             <div key={i} style={{ display: "flex", gap: 14, background: "#f9fafb", borderRadius: 10, padding: "0.875rem", marginBottom: 8 }}>
@@ -662,6 +662,8 @@ function ResultNewNoMetrics({ data }: { data: AnalysisResult }) {
           ))}
         </Card>
       )}
+
+      {data.trackingBlueprint && <BlueprintSection blueprint={data.trackingBlueprint} accentColor="#6366f1" />}
 
       {data.returnMessage && (
         <div style={{ background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 12, padding: "1.25rem 1.5rem" }}>
@@ -682,7 +684,7 @@ function ResultExistingNoMetrics({ data }: { data: AnalysisResult }) {
 
       {data.metricsGap && (
         <Card>
-          <SectionLabel>What&apos;s Blocked Without Data</SectionLabel>
+          <SectionLabel>What You&apos;re Missing Right Now</SectionLabel>
           <p style={{ fontSize: 14, fontWeight: 500, color: "#92400e", marginBottom: 10 }}>{data.metricsGap.headline}</p>
           <ul style={{ paddingLeft: 16 }}>
             {data.metricsGap.blockedInsights.map((b, i) => (
@@ -692,59 +694,9 @@ function ResultExistingNoMetrics({ data }: { data: AnalysisResult }) {
         </Card>
       )}
 
-      {data.trackingBlueprint && (
-        <Card>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-            <SectionLabel>Tracking Blueprint — Start Immediately</SectionLabel>
-            <CopyButton text={data.trackingBlueprint.map(s =>
-              `[${s.stage}]\n${s.metrics.map((m, i) => `${i+1}. ${m.metric} — ${m.why} | Benchmark: ${m.benchmark}`).join("\n")}`
-            ).join("\n\n")} />
-          </div>
-          <p style={{ fontSize: 12, color: "#9ca3af", marginBottom: 16 }}>
-            Your product is live but flying blind. Every day without these metrics is a missed opportunity to improve.
-          </p>
-          {(() => {
-            const stageColors: Record<string, { bg: string; border: string; text: string; badge: string }> = {
-              Acquisition: { bg: "#eef2ff", border: "#6366f1", text: "#4338ca", badge: "#6366f1" },
-              Activation:  { bg: "#f0fdf4", border: "#10b981", text: "#065f46", badge: "#10b981" },
-              Retention:   { bg: "#fffbeb", border: "#f59e0b", text: "#92400e", badge: "#f59e0b" },
-              Revenue:     { bg: "#fef2f2", border: "#ef4444", text: "#991b1b", badge: "#ef4444" },
-              Referral:    { bg: "#f5f3ff", border: "#8b5cf6", text: "#5b21b6", badge: "#8b5cf6" },
-            };
-            return data.trackingBlueprint!.map((stage, si) => {
-              const c = stageColors[stage.stage] || stageColors.Acquisition;
-              return (
-                <div key={si} style={{ marginBottom: 16 }}>
-                  <div style={{ background: c.bg, border: `1.5px solid ${c.border}`, borderRadius: 10, padding: "10px 14px", marginBottom: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                      <span style={{ background: c.badge, color: "#fff", fontSize: 11, fontWeight: 700, padding: "2px 10px", borderRadius: 99 }}>{stage.stage}</span>
-                    </div>
-                    <p style={{ fontSize: 12, color: c.text, margin: 0 }}>{stage.stageWhy}</p>
-                  </div>
-                  <div style={{ display: "grid", gap: 8, paddingLeft: 4 }}>
-                    {stage.metrics.map((m, mi) => (
-                      <div key={mi} style={{ background: "#f9fafb", borderRadius: 10, padding: "0.875rem", borderLeft: `3px solid ${c.border}` }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                          <span style={{ width: 20, height: 20, borderRadius: "50%", background: c.badge, color: "#fff", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{mi + 1}</span>
-                          <span style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{m.metric}</span>
-                        </div>
-                        <p style={{ fontSize: 12, color: "#4b5563", marginBottom: 3 }}><strong>What it measures:</strong> {m.definition}</p>
-                        <p style={{ fontSize: 12, color: "#4b5563", marginBottom: 3 }}><strong>Why it matters:</strong> {m.why}</p>
-                        <p style={{ fontSize: 12, color: "#6366f1", marginBottom: 3 }}><strong>How to track:</strong> {m.howToTrack}</p>
-                        <p style={{ fontSize: 12, color: "#059669", fontWeight: 500 }}>Benchmark: {m.benchmark}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            });
-          })()}
-        </Card>
-      )}
-
       {data.plan6Months?.phases && (
         <Card>
-          <SectionLabel>6-Month Growth Plan</SectionLabel>
+          <SectionLabel>Your 6-Month Growth Plan</SectionLabel>
           <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 14, fontStyle: "italic" }}>Goal: {data.plan6Months.goal}</p>
           {data.plan6Months.phases.map((p, i) => (
             <div key={i} style={{ borderLeft: "3px solid #f59e0b", paddingLeft: 14, marginBottom: 14 }}>
@@ -760,7 +712,7 @@ function ResultExistingNoMetrics({ data }: { data: AnalysisResult }) {
 
       {Array.isArray(data.retentionPlan) && (data.retentionPlan as RetentionStrategy[]).length > 0 && (
         <Card>
-          <SectionLabel>Retention Strategies</SectionLabel>
+          <SectionLabel>How to Keep Your Users</SectionLabel>
           {(data.retentionPlan as RetentionStrategy[]).map((r, i) => (
             <div key={i} style={{ background: "#f9fafb", borderRadius: 10, padding: "0.875rem", marginBottom: 8 }}>
               <p style={{ fontWeight: 600, fontSize: 14, color: "#111827", marginBottom: 4 }}>{r.strategy}</p>
@@ -770,6 +722,8 @@ function ResultExistingNoMetrics({ data }: { data: AnalysisResult }) {
           ))}
         </Card>
       )}
+
+      {data.trackingBlueprint && <BlueprintSection blueprint={data.trackingBlueprint} accentColor="#f59e0b" />}
 
       {data.dataRequest && (
         <div style={{ background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: 12, padding: "1.25rem 1.5rem" }}>
@@ -800,7 +754,7 @@ function ResultExistingWithMetrics({ data }: { data: AnalysisResult }) {
         <Card>
           <SectionLabel>Metrics Health Check</SectionLabel>
           <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 14 }}>{data.metrics.headline}</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
+          <div className="score-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
             {data.metrics.scores.map((s, i) => {
               const c = scoreColor[s.score as Score] || scoreColor.Fair;
               return (
@@ -1017,16 +971,33 @@ export default function Home() {
         .toggle-btn:hover { transform: translateY(-1px); }
         .stage-btn:hover { background: #1a1a1a !important; color: #fff !important; }
         .submit-btn:hover:not(:disabled) { background: #C8A96E !important; }
-        .refine-btn:hover { background: #1a1a1a !important; color: #fff !important; border-color: #1a1a1a !important; }
+        .refine-btn:hover { background: rgba(255,255,255,0.12) !important; border-color: rgba(255,255,255,0.4) !important; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .fade-up { animation: fadeUp 0.5s ease forwards; }
+
+        @media (max-width: 640px) {
+          .hero-title { font-size: 2rem !important; }
+          .hero-pad { padding: 2rem 1.25rem 1.75rem !important; }
+          .form-card { padding: 1.5rem 1.25rem !important; }
+          .toggle-row { flex-direction: column !important; }
+          .stage-row { flex-wrap: wrap !important; }
+          .metrics-grid { grid-template-columns: 1fr !important; }
+          .engine-grid { grid-template-columns: 1fr !important; }
+          .funnel-grid { grid-template-columns: 80px 1fr !important; }
+          .funnel-action { display: none !important; }
+          .export-bar { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+          .export-btns { width: 100% !important; }
+          .export-btns button { flex: 1 !important; }
+          .score-grid { grid-template-columns: 1fr !important; }
+          .refine-grid { grid-template-columns: 1fr 1fr !important; }
+        }
       `}</style>
 
       <main style={{ minHeight: "100vh", background: "#F7F4EF", fontFamily: "'DM Sans', sans-serif" }}>
 
         {/* Hero Header */}
-        <div style={{ background: "#1a1a1a", padding: "3rem 2rem 2.5rem", position: "relative", overflow: "hidden" }}>
+        <div style={{ background: "#1a1a1a", padding: "3rem 2rem 2.5rem", position: "relative", overflow: "hidden" }} className="hero-pad">
           <div style={{ position: "absolute", top: -60, right: -60, width: 300, height: 300, borderRadius: "50%", border: "1px solid rgba(200,169,110,0.15)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", top: -20, right: -20, width: 180, height: 180, borderRadius: "50%", border: "1px solid rgba(200,169,110,0.1)", pointerEvents: "none" }} />
           <div style={{ maxWidth: 820, margin: "0 auto" }}>
@@ -1034,7 +1005,7 @@ export default function Home() {
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#C8A96E" }} />
               <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "#C8A96E" }}>AI-Powered Strategy</span>
             </div>
-            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2.2rem, 5vw, 3.5rem)", fontWeight: 900, color: "#fff", margin: "0 0 1rem", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
+            <h1 className="hero-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2.2rem, 5vw, 3.5rem)", fontWeight: 900, color: "#fff", margin: "0 0 1rem", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
               Your Product&apos;s<br />
               <span style={{ color: "#C8A96E", fontStyle: "italic" }}>Growth Advisor</span>
             </h1>
@@ -1047,7 +1018,7 @@ export default function Home() {
         <div style={{ maxWidth: 820, margin: "0 auto", padding: "2.5rem 1.5rem" }}>
 
           {/* Intake Form */}
-          <div style={{ background: "#fff", borderRadius: 2, padding: "2.5rem", marginBottom: "1.5rem", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 4px 4px 0 #1a1a1a" }}>
+          <div className="form-card" style={{ background: "#fff", borderRadius: 2, padding: "2.5rem", marginBottom: "1.5rem", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 4px 4px 0 #1a1a1a" }}>
 
             {/* Section number */}
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: "2rem" }}>
@@ -1131,7 +1102,7 @@ export default function Home() {
                   <span style={{ fontSize: 11, color: "#bbb", fontStyle: "italic" }}>optional but recommended</span>
                 </div>
                 <p style={{ fontSize: 12, color: "#aaa", marginBottom: 16, fontWeight: 300 }}>More data unlocks deeper analysis. Leave blank for strategic guidance only.</p>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                <div className="metrics-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                   {[
                     { label: "Monthly Active Users", placeholder: "e.g. 2500", val: monthlyUsers, set: setMonthlyUsers },
                     { label: "Monthly Signups", placeholder: "e.g. 300", val: monthlySignups, set: setMonthlySignups },
@@ -1154,7 +1125,7 @@ export default function Home() {
             {/* AI Engine */}
             <div style={{ marginBottom: "1.5rem" }}>
               <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#888", marginBottom: 12 }}>AI Engine</p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div className="engine-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 {[
                   { val: "groq", label: "Groq", sub: "Fast & Free · LLaMA 3.3 70B", premium: false },
                   { val: "openrouter", label: "OpenRouter", sub: "Free Models", premium: false },
@@ -1233,12 +1204,12 @@ export default function Home() {
           {result && (
             <div className="fade-up">
               {/* Export bar */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: "2px solid #1a1a1a" }}>
+              <div className="export-bar" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: "2px solid #1a1a1a" }}>
                 <div>
                   <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#C8A96E", margin: "0 0 4px" }}>Strategy Report</p>
                   <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: "#1a1a1a", margin: 0 }}>{productName}</p>
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="export-btns" style={{ display: "flex", gap: 8 }}>
                   <button onClick={handleCopyAll} style={{ fontSize: 12, padding: "8px 16px", borderRadius: 2, border: "1.5px solid #1a1a1a", background: "#fff", color: "#1a1a1a", cursor: "pointer", fontWeight: 600, letterSpacing: "0.04em" }}>
                     Copy
                   </button>
@@ -1254,12 +1225,19 @@ export default function Home() {
 
               {/* Refine prompts */}
               <div style={{ marginTop: "2rem", padding: "1.5rem", background: "#1a1a1a", borderRadius: 2 }}>
-                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#C8A96E", marginBottom: 12 }}>Refine your strategy</p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {["Focus only on retention", "Give me a paid acquisition plan", "What should I do in the first 30 days?", "How do I improve activation?"].map(q => (
-                    <button key={q} className="refine-btn" onClick={() => { setDescription(d => d + `\n\nFollow-up focus: ${q}`); setTimeout(handleSubmit, 100); }}
-                      style={{ fontSize: 12, padding: "8px 16px", borderRadius: 2, border: "1.5px solid rgba(255,255,255,0.15)", background: "transparent", color: "rgba(255,255,255,0.7)", cursor: "pointer", transition: "all 0.15s" }}>
-                      {q}
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#C8A96E", marginBottom: 6 }}>Want to go deeper?</p>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 14, fontWeight: 300 }}>Click any of the options below to refine your strategy around a specific focus area.</p>
+                <div className="refine-grid" style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                  {[
+                    { label: "Focus on Retention", desc: "How do I keep users coming back?" },
+                    { label: "Acquisition Strategy", desc: "How do I get more users?" },
+                    { label: "First 30 Days", desc: "What should I do right now?" },
+                    { label: "Improve Activation", desc: "How do I get users to their first win?" },
+                  ].map(q => (
+                    <button key={q.label} className="refine-btn" onClick={() => { setDescription(d => d + `\n\nFollow-up focus: ${q.desc}`); setTimeout(handleSubmit, 100); }}
+                      style={{ padding: "10px 16px", borderRadius: 2, border: "1.5px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.05)", color: "#fff", cursor: "pointer", transition: "all 0.15s", textAlign: "left" }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{q.label}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>{q.desc}</div>
                     </button>
                   ))}
                 </div>

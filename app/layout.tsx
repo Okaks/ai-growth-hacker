@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "AI Growth Advisor",
   description: "Consultant-grade growth strategy, powered by AI",
-}
+} 
 
 export default function RootLayout({
   children,

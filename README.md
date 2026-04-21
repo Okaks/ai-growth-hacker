@@ -102,7 +102,7 @@ This app is optimised for Vercel. The rate limiter uses Upstash Redis, which wor
 5. Deploy
 
 ----
-Demo video: https://www.loom.com/share/01b716d1b70b471da3b12ed93405d982
+Demo video: https://www.loom.com/share/a460ae0c33214624acad94ecd72bb022
 ---
 
 [LinkedIn](https://www.linkedin.com/in/blessing-okakwu/) · [Portfolio](https://bokakwu.wixsite.com/okakwus-analytics) · [Live App](https://ai-growth-hacker.vercel.app)

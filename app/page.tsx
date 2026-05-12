@@ -383,15 +383,22 @@ async function exportToPDF(result: AnalysisResult, productName: string) {
       const colorMap: Record<string, [number, number, number]> = {
         Good: [22, 101, 52], Fair: [146, 64, 14], Weak: [153, 27, 27]
       };
-      checkPageBreak(10);
+      checkPageBreak(14);
+      const labelText = `${s.label} [${s.score}]`;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
       doc.setTextColor(...(colorMap[s.score] || [55, 65, 81]));
-      doc.text(`${s.label} [${s.score}]`, margin, y);
+      doc.text(labelText, margin, y);
+      y += 5.5;
       doc.setFont("helvetica", "normal");
       doc.setTextColor(55, 65, 81);
-      doc.text(` — ${s.note}`, margin + doc.getTextWidth(`${s.label} [${s.score}]`), y);
-      y += 6;
+      const noteLines = doc.splitTextToSize(`— ${s.note}`, contentWidth - 4);
+      noteLines.forEach((line: string) => {
+        checkPageBreak(6);
+        doc.text(line, margin + 4, y);
+        y += 5;
+      });
+      addGap(2);
     });
     addGap(4);
   }

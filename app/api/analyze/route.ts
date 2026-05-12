@@ -39,22 +39,80 @@ async function checkAndIncrementUsage(provider: string): Promise<{ allowed: bool
   return { allowed: true };
 }
 
+// ─── Business Type Metrics Config ─────────────────────────────────────────────
+
+type BusinessType = "digital" | "ecommerce" | "service" | "content";
+
+interface MetricsInput {
+  metric1: string;
+  metric2: string;
+  metric3: string;
+  metric4: string;
+  metric5: string;
+}
+
+function getMetricsContext(businessType: BusinessType, metrics: MetricsInput): string {
+  const { metric1, metric2, metric3, metric4, metric5 } = metrics;
+
+  switch (businessType) {
+    case "digital":
+      return `
+Monthly Active Users: ${metric1 || "Not provided"}
+Monthly Signups: ${metric2 || "Not provided"}
+Activation Rate: ${metric3 ? metric3 + "%" : "Not provided"}
+Retention Rate: ${metric4 ? metric4 + "%" : "Not provided"}
+Monthly Revenue: ${metric5 ? "$" + metric5 : "Not provided"}
+`;
+    case "ecommerce":
+      return `
+Monthly Orders: ${metric1 || "Not provided"}
+Average Order Value: ${metric2 ? "$" + metric2 : "Not provided"}
+Repeat Purchase Rate: ${metric3 ? metric3 + "%" : "Not provided"}
+Enquiry to Sale Conversion Rate: ${metric4 ? metric4 + "%" : "Not provided"}
+Monthly Revenue: ${metric5 ? "$" + metric5 : "Not provided"}
+Business Note: This is a product/e-commerce business. Metrics like MAU and activation rate are not relevant. Focus advice on order volume, basket size, repeat purchase behaviour, and revenue per customer.
+`;
+    case "service":
+      return `
+Number of Clients per Month: ${metric1 || "Not provided"}
+Average Project or Service Value: ${metric2 ? "$" + metric2 : "Not provided"}
+Repeat Client Rate: ${metric3 ? metric3 + "%" : "Not provided"}
+Enquiry to Sale Conversion Rate: ${metric4 ? metric4 + "%" : "Not provided"}
+Monthly Revenue: ${metric5 ? "$" + metric5 : "Not provided"}
+Business Note: This is a service business. Do not advise on app metrics or SaaS funnels. Focus on client acquisition, retention, referrals, pricing, and service delivery efficiency.
+`;
+    case "content":
+      return `
+Total Followers or Subscribers: ${metric1 || "Not provided"}
+Monthly Reach or Impressions: ${metric2 || "Not provided"}
+Engagement Rate: ${metric3 ? metric3 + "%" : "Not provided"}
+Audience to Revenue Conversion Rate: ${metric4 ? metric4 + "%" : "Not provided"}
+Monthly Revenue: ${metric5 ? "$" + metric5 : "Not provided"}
+Business Note: This is a content or media business. Focus advice on audience growth, engagement, monetisation channels (sponsorships, subscriptions, products), and community building.
+`;
+    default:
+      return `
+Monthly Active Users: ${metric1 || "Not provided"}
+Monthly Signups: ${metric2 || "Not provided"}
+Activation Rate: ${metric3 ? metric3 + "%" : "Not provided"}
+Retention Rate: ${metric4 ? metric4 + "%" : "Not provided"}
+Monthly Revenue: ${metric5 ? "$" + metric5 : "Not provided"}
+`;
+  }
+}
+
 // ─── State Detection ───────────────────────────────────────────────────────────
 
 function detectState(
   isNew: boolean,
-  monthlyUsers: string,
-  monthlySignups: string,
-  activationRate: string,
-  retentionRate: string,
-  revenue: string
+  metrics: MetricsInput
 ): ProductState {
   const hasMetrics =
-    monthlyUsers?.trim() ||
-    monthlySignups?.trim() ||
-    activationRate?.trim() ||
-    retentionRate?.trim() ||
-    revenue?.trim();
+    metrics.metric1?.trim() ||
+    metrics.metric2?.trim() ||
+    metrics.metric3?.trim() ||
+    metrics.metric4?.trim() ||
+    metrics.metric5?.trim();
 
   if (isNew) return "new_no_metrics";
   if (!hasMetrics) return "existing_no_metrics";
@@ -69,26 +127,18 @@ function buildPrompt(
   description: string,
   users: string,
   stage: string,
-  monthlyUsers: string,
-  monthlySignups: string,
-  activationRate: string,
-  retentionRate: string,
-  revenue: string
+  businessType: BusinessType,
+  metrics: MetricsInput
 ): string {
   const baseContext = `
 Product Name: ${productName}
 Product Description: ${description}
 Target Audience: ${users}
 Product Stage: ${stage}
+Business Type: ${businessType === "digital" ? "Digital Product / App / SaaS" : businessType === "ecommerce" ? "E-commerce / Physical Product" : businessType === "service" ? "Service Business" : "Content / Media"}
 `;
 
-  const metricsContext = `
-Monthly Active Users: ${monthlyUsers || "Not provided"}
-Monthly Signups: ${monthlySignups || "Not provided"}
-Activation Rate: ${activationRate ? activationRate + "%" : "Not provided"}
-Retention Rate: ${retentionRate ? retentionRate + "%" : "Not provided"}
-Monthly Revenue: ${revenue ? "$" + revenue : "Not provided"}
-`;
+  const metricsContext = getMetricsContext(businessType, metrics);
 
   const outputInstructions = `
 CRITICAL: You MUST respond with ONLY a valid JSON object. No markdown, no explanation, no text before or after.
@@ -390,14 +440,17 @@ export async function POST(req: Request) {
       users,
       isNew,
       stage,
-      monthlyUsers,
-      monthlySignups,
-      activationRate,
-      retentionRate,
-      revenue,
+      businessType,
+      metric1,
+      metric2,
+      metric3,
+      metric4,
+      metric5,
       provider,
       premiumPassword,
     } = body;
+
+    const metrics: MetricsInput = { metric1, metric2, metric3, metric4, metric5 };
 
     // 1. Password check for premium providers
     if (PREMIUM_PROVIDERS.includes(provider)) {
@@ -420,10 +473,10 @@ export async function POST(req: Request) {
     }
 
     // 3. Build prompt and call AI
-    const state = detectState(isNew, monthlyUsers, monthlySignups, activationRate, retentionRate, revenue);
+    const state = detectState(isNew, metrics);
     const prompt = buildPrompt(
       state, productName, description, users, stage,
-      monthlyUsers, monthlySignups, activationRate, retentionRate, revenue
+      businessType || "digital", metrics
     );
 
     let rawResult = "";

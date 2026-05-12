@@ -884,11 +884,12 @@ export default function Home() {
   const [users, setUsers] = useState("");
   const [isNew, setIsNew] = useState<boolean | null>(null);
   const [stage, setStage] = useState("early");
-  const [monthlyUsers, setMonthlyUsers] = useState("");
-  const [monthlySignups, setMonthlySignups] = useState("");
-  const [activationRate, setActivationRate] = useState("");
-  const [retentionRate, setRetentionRate] = useState("");
-  const [revenue, setRevenue] = useState("");
+  const [businessType, setBusinessType] = useState<"digital" | "ecommerce" | "service" | "content">("digital");
+  const [metric1, setMetric1] = useState("");
+  const [metric2, setMetric2] = useState("");
+  const [metric3, setMetric3] = useState("");
+  const [metric4, setMetric4] = useState("");
+  const [metric5, setMetric5] = useState("");
   const [provider, setProvider] = useState("groq");
   const [premiumPassword, setPremiumPassword] = useState("");
   const [showPasswordField, setShowPasswordField] = useState(false);
@@ -918,7 +919,7 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productName, description, users, isNew, stage,
-          monthlyUsers, monthlySignups, activationRate, retentionRate, revenue,
+          businessType, metric1, metric2, metric3, metric4, metric5,
           provider, premiumPassword,
         }),
       });
@@ -1101,22 +1102,69 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Metrics */}
+            {/* Business Type */}
+            <div style={{ marginBottom: "2rem" }}>
+              <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#888", marginBottom: 12 }}>Business type</p>
+              <div className="engine-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {[
+                  { val: "digital", label: "Digital / App / SaaS", icon: "⚡", sub: "Software, apps, platforms" },
+                  { val: "ecommerce", label: "E-commerce / Products", icon: "🛍️", sub: "Online or physical goods" },
+                  { val: "service", label: "Service Business", icon: "🤝", sub: "Freelance, agency, consulting" },
+                  { val: "content", label: "Content / Media", icon: "📱", sub: "Creators, newsletters, podcasts" },
+                ].map(bt => (
+                  <button key={bt.val} onClick={() => {
+                    setBusinessType(bt.val as "digital" | "ecommerce" | "service" | "content");
+                    setMetric1(""); setMetric2(""); setMetric3(""); setMetric4(""); setMetric5("");
+                  }} style={{
+                    padding: "10px 14px", cursor: "pointer", textAlign: "left",
+                    border: businessType === bt.val ? "2px solid #1a1a1a" : "1.5px solid #e5e5e5",
+                    background: businessType === bt.val ? "#1a1a1a" : "#fff",
+                    borderRadius: 2, transition: "all 0.15s"
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                      <span style={{ fontSize: 14 }}>{bt.icon}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: businessType === bt.val ? "#C8A96E" : "#1a1a1a" }}>{bt.label}</span>
+                    </div>
+                    <p style={{ fontSize: 11, color: businessType === bt.val ? "rgba(255,255,255,0.4)" : "#bbb", margin: 0, fontWeight: 300 }}>{bt.sub}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Metrics (existing only) */}
             {isNew === false && (
-              <div style={{ marginBottom: "2rem" }}>
+              <div style={{ marginBottom: "1.25rem" }}>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
                   <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#888", margin: 0 }}>Current Metrics</p>
                   <span style={{ fontSize: 11, color: "#bbb", fontStyle: "italic" }}>optional but recommended</span>
                 </div>
                 <p style={{ fontSize: 12, color: "#aaa", marginBottom: 16, fontWeight: 300 }}>More data unlocks deeper analysis. Leave blank for strategic guidance only.</p>
                 <div className="metrics-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-                  {[
-                    { label: "Monthly Active Users", placeholder: "e.g. 2500", val: monthlyUsers, set: setMonthlyUsers },
-                    { label: "Monthly Signups", placeholder: "e.g. 300", val: monthlySignups, set: setMonthlySignups },
-                    { label: "Activation Rate (%)", placeholder: "e.g. 42", val: activationRate, set: setActivationRate },
-                    { label: "Retention Rate (%)", placeholder: "e.g. 35", val: retentionRate, set: setRetentionRate },
-                    { label: "Monthly Revenue ($)", placeholder: "e.g. 8000", val: revenue, set: setRevenue },
-                  ].map(f => (
+                  {(businessType === "digital" ? [
+                    { label: "Monthly Active Users", placeholder: "e.g. 2500", val: metric1, set: setMetric1 },
+                    { label: "Monthly Signups", placeholder: "e.g. 300", val: metric2, set: setMetric2 },
+                    { label: "Activation Rate (%)", placeholder: "e.g. 42", val: metric3, set: setMetric3 },
+                    { label: "Retention Rate (%)", placeholder: "e.g. 35", val: metric4, set: setMetric4 },
+                    { label: "Monthly Revenue ($)", placeholder: "e.g. 8000", val: metric5, set: setMetric5 },
+                  ] : businessType === "ecommerce" ? [
+                    { label: "Monthly Orders", placeholder: "e.g. 150", val: metric1, set: setMetric1 },
+                    { label: "Average Order Value ($)", placeholder: "e.g. 45", val: metric2, set: setMetric2 },
+                    { label: "Repeat Purchase Rate (%)", placeholder: "e.g. 30", val: metric3, set: setMetric3 },
+                    { label: "Enquiry to Sale Conversion (%)", placeholder: "e.g. 20", val: metric4, set: setMetric4 },
+                    { label: "Monthly Revenue ($)", placeholder: "e.g. 6000", val: metric5, set: setMetric5 },
+                  ] : businessType === "service" ? [
+                    { label: "Clients per Month", placeholder: "e.g. 8", val: metric1, set: setMetric1 },
+                    { label: "Average Project Value ($)", placeholder: "e.g. 500", val: metric2, set: setMetric2 },
+                    { label: "Repeat Client Rate (%)", placeholder: "e.g. 40", val: metric3, set: setMetric3 },
+                    { label: "Enquiry to Sale Conversion (%)", placeholder: "e.g. 25", val: metric4, set: setMetric4 },
+                    { label: "Monthly Revenue ($)", placeholder: "e.g. 4000", val: metric5, set: setMetric5 },
+                  ] : [
+                    { label: "Total Followers / Subscribers", placeholder: "e.g. 12000", val: metric1, set: setMetric1 },
+                    { label: "Monthly Reach / Impressions", placeholder: "e.g. 80000", val: metric2, set: setMetric2 },
+                    { label: "Engagement Rate (%)", placeholder: "e.g. 4.5", val: metric3, set: setMetric3 },
+                    { label: "Audience to Revenue Conversion (%)", placeholder: "e.g. 2", val: metric4, set: setMetric4 },
+                    { label: "Monthly Revenue ($)", placeholder: "e.g. 1500", val: metric5, set: setMetric5 },
+                  ]).map(f => (
                     <div key={f.label}>
                       <label style={{ display: "block", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#bbb", marginBottom: 6 }}>{f.label}</label>
                       <input className="field-input" placeholder={f.placeholder} style={{ ...inputStyle, fontSize: 14, borderBottom: "1.5px solid #ddd" }} value={f.val} onChange={e => f.set(e.target.value)} />
